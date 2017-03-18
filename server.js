@@ -3,7 +3,6 @@
 let app = require('express')();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
-let rand = new Random();
 
 var fuelConsumption = 0.0;
 var tonnage = 0.0;
@@ -14,19 +13,19 @@ var teamTonnage = 1000.0;
 var setFuelConsumption = function () {
     var min = 16.0;
     var max = 30.0;
-    this.fuelConsumption = rand.nextFloat() * (max - min) + min;
+    this.fuelConsumption = Math.random().nextFloat() * (max - min) + min;
 };
 
 var setTonnage = function () {
     var min = 13.0;
     var max = 24.0;
-    this.tonnage = rand.nextFloat() * (max - min) + min;
+    this.tonnage = Math.random().nextFloat() * (max - min) + min;
 };
 
 var setThroughput = function () {
     var min = 350.0;
     var max = 500.0;
-    this.throughput = rand.nextFloat() * (max - min) + min;
+    this.throughput = Math.random().nextFloat() * (max - min) + min;
 };
 
 var teamTonnage = function () {
