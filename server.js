@@ -4,35 +4,76 @@ let app = require('express')();
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
 
-io.on('connection', (socket) => {
+var fuelConsumption = 0.0;
+var tonnage = 0.0;
+var throughput = 0.0;
+var teamTonnage = 1000.0;
+var totalTonage = 0;
+var currentCycleTimeMin = 0;
+var currentCycleTimeSec = 0;
+var avgCycleTimeMin = 0;
+var avgCycleTimeSec = 0;
+var cycleCount = 0;
 
-  var fuelConsumption = 0.0;
-  var tonnage = 0.0;
-  var throughput = 0.0;
-  var teamTonnage = 1000.0;
+function setFuelConsumption() {
+    var min = 0.0;
+    var max = 100.0;
+    fuelConsumption = Math.random() * (max - min) + min;
+}
+
+function setTonnage() {
+    var min = 13.0;
+    var max = 24.0;
+    tonnage = Math.random() * (max - min) + min;;
+};
+
+function setTotalTonnage() {
+    totalTonage += tonnage;
+}
+
+function setThroughput() {
+    var min = 350.0;
+    var max = 500.0;
+    throughput = Math.random() * (max - min) + min;
+    setTimeout(setThroughput, 10000);
+};
+
+function setTeamTonnage() {
+    teamTonnage += tonnage;
+    setTotalTonnage();
+    setCurrentCycleTimeMin();
+    setTimeout(setTeamTonnage, 5000);
+};
+
+function setCurrentCycleTimeMin() {
+    currentCycleTimeSec += 1;
+    if (currentCycleTimeSec > 60) {
+        currentCycleTimeSec = 0;
+        currentCycleTimeMin += 1;
+    } 
+};
+
+function emitData() {
+    setFuelConsumption();
+    setTonnage();
 
 
-  var setFuelConsumption = function () {
-      var min = 16.0;
-      var max = 30.0;
-      fuelConsumption = Math.random() * (max - min) + min;
-  };
+    io.sockets.emit('data', {
+        fuelConsumption: fuelConsumption, 
+        tonnage: tonnage,
+        totalTonage: totalTonage,
+        throughput: throughput,
+        teamTonnage: teamTonnage,
+        currentCycleTimeMin : currentCycleTimeMin,
+        currentCycleTimeSec: currentCycleTimeSec,
+        avgCycleTimeMin: avgCycleTimeMin,
+        avgCycleTimeSec: avgCycleTimeSec,
+        currentTime: new Date().getTime()
+    });
+    setTimeout (emitData, 1000);  
+  }
 
-  var setTonnage = function () {
-      var min = 13.0;
-      var max = 24.0;
-      tonnage = Math.random() * (max - min) + min;
-  };
-
-  var setThroughput = function () {
-      var min = 350.0;
-      var max = 500.0;
-      throughput = Math.random() * (max - min) + min;
-  };
-
-  var setTeamTonnage = function () {
-      teamTonnage += tonnage;
-  };
+io.sockets.on('connection', (socket) => {
 
   console.log('user connected');
   
@@ -40,25 +81,9 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
   });
   
-  setTimeout(function() {
-    setTeamTonnage();
-  }, 10000);
-
-  setTimeout(function () {
-    setFuelConsumption();
-    setTonnage();
-    setThroughput();
-
-    io.emit('data', {
-        fuelConsumption: fuelConsumption, 
-        tonnage: tonnage,
-        throughput: throughput,
-        teamTonnage: teamTonnage,
-        currentTime: new Date().getTime()
-    });
-    console.log(teamTonnage);    
-  }, 500);
-    
+  setThroughput();
+  setTeamTonnage();
+  emitData();
 });
 
 http.listen(5000, () => {
