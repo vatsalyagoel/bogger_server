@@ -61,7 +61,7 @@ function emitData() {
     io.sockets.emit('data', {
         fuelConsumption: fuelConsumption, 
         tonnage: tonnage,
-        totalTonage: totalTonage,
+        totalTonage: totalTonage / 3,
         throughput: throughput,
         teamTonnage: teamTonnage,
         currentCycleTimeMin : currentCycleTimeMin,
